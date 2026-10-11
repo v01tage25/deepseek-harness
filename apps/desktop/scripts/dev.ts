@@ -73,6 +73,9 @@ async function launchElectron(): Promise<void> {
     DSH_DESKTOP_OPEN_DEVTOOLS: process.env.DSH_DESKTOP_OPEN_DEVTOOLS ?? '1',
     ELECTRON_ENABLE_LOGGING: process.env.ELECTRON_ENABLE_LOGGING ?? '1',
   }
+  // A node-runtime package manager may export this flag; the Electron child
+  // must run as Electron or it rejects its own --remote-debugging-port flag.
+  delete environment.ELECTRON_RUN_AS_NODE
   console.log(`desktop development: DSH_HOME=${home}`)
   console.log(`desktop development: userData=${userData}`)
   console.log(`desktop development: inspectors main=${String(mainPort)}, renderer=${String(rendererPort)}, host=${String(hostPort)}`)
@@ -86,6 +89,9 @@ async function launchElectron(): Promise<void> {
     `--inspect=127.0.0.1:${String(mainPort)}`,
     `--remote-debugging-port=${String(rendererPort)}`,
     `--user-data-dir=${userData}`,
+    // Dev-only: the unpackaged Electron sandbox crashes on hosts with
+    // third-party DLL injection (STATUS_BREAKPOINT before logging).
+    '--no-sandbox',
     APP_ROOT,
   ], APP_ROOT, environment)
 }
