@@ -215,6 +215,8 @@ function createWindow(preload: string, show = false, primary = false): BrowserWi
       titleBarStyle: 'hidden' as const,
       titleBarOverlay: { height: WINDOWS_TITLEBAR_HEIGHT, color: chromeFallbackFill(),
         symbolColor: nativeTheme.shouldUseDarkColors ? '#f9fafb' : '#0f1115' },
+      // The custom caption replaces the native menu bar; Alt still reveals it.
+      autoHideMenuBar: true as const,
     } : {}),
     // hiddenInset places traffic lights inside the sidebar; sidebar vibrancy
     // needs a transparent window background to show through the page.
@@ -237,6 +239,10 @@ function createWindow(preload: string, show = false, primary = false): BrowserWi
       devTools: true,
     },
   })
+  if (process.platform === 'win32' && primary) {
+    // Hide the native menu bar on first paint; accelerators (F12 devtools) stay live.
+    window.setMenuBarVisibility(false)
+  }
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (['http:', 'https:'].includes(new URL(url).protocol)) void shell.openExternal(url)
     return { action: 'deny' }
